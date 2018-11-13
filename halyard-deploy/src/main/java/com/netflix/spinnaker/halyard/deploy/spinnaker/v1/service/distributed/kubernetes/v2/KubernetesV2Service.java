@@ -44,6 +44,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kub
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils.SecretMountPair;
 import io.fabric8.utils.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.expression.spel.ast.Assign;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -225,6 +226,8 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
         .addBinding("containers", containers)
         .addBinding("initContainers", initContainers)
+        .addBinding("hostAliases", hostAliases)
+        .addBinding("imagePullSecrets", settings.getKubernetes().getImagePullSecrets())
         .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("volumes", volumes);
 
