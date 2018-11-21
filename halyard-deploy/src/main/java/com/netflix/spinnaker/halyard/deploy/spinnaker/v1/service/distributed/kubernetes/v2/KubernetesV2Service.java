@@ -188,6 +188,9 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               if (c.getEmptyDir() != null && c.getEmptyDir().size() == 0) { // analogous to `emptyDir: {}`
                 volume = new JinjaJarResource("/kubernetes/manifests/emptyDirVolume.yml");
                 volume.addBinding("name", c.getName());
+              } else if (c.getSecretName() != null) {
+                volume = new JinjaJarResource("/kubernetes/manifests/secretVolume.yml");
+                volume.addBinding("name", c.getSecretName());
               } else {
                 throw new HalException(Problem.Severity.FATAL, "Unsupported volume type");
               }

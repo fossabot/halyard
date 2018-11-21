@@ -26,4 +26,5 @@ import java.util.Map;
 public class Volumes {
     String name;
     Map<String, String> emptyDir;
+    String secretName;
 }
