@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
+import com.netflix.spinnaker.halyard.deploy.config.v1.secrets.DecryptingObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -42,6 +43,10 @@ abstract public class ProfileFactory {
 
   @Autowired
   private ObjectMapper strictObjectMapper;
+
+  protected boolean canDecrypt() {
+    return false;
+  }
 
   protected boolean showEditWarning() {
     return true;
@@ -86,7 +91,13 @@ abstract public class ProfileFactory {
     return node.backupLocalFiles(halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
   }
 
-  protected String yamlToString(Object o) {
-    return yamlParser.dump(strictObjectMapper.convertValue(o, Map.class));
+  protected String yamlToString(Object o, List<String> files) {
+    Map content;
+    if (canDecrypt()) {
+      content = strictObjectMapper.convertValue(o, Map.class);
+    } else {
+      content = new DecryptingObjectMapper(files).convertValue(o, Map.class);
+    }
+    return yamlParser.dump(content);
   }
 }

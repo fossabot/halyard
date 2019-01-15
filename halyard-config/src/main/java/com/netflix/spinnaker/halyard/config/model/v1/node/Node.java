@@ -176,12 +176,25 @@ abstract public class Node implements Validatable {
 
     while (clazz != null) {
       res.addAll(Arrays.stream(clazz.getDeclaredFields())
-          .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null)
+          .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null && !isSecretFile(f))
           .collect(Collectors.toList()));
       clazz = clazz.getSuperclass();
     }
 
     return res;
+  }
+
+  protected boolean isSecretFile(Field field) {
+    if (field.getDeclaredAnnotation(SecretFile.class) != null) {
+      try {
+        field.setAccessible(true);
+        String val = (String) field.get(this);
+        return val.startsWith("encrypted"); // TODO:L Call EncryptedSecret.isSecret()
+      } catch (IllegalAccessException e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   public void stageLocalFiles(Path outputPath) {

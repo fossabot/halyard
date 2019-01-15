@@ -89,7 +89,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
     spinnakerObjectMap.put("spinnaker", persistentStorageMap);
 
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    profile.appendContents(yamlToString(spinnakerObjectMap))
+    profile.appendContents(yamlToString(spinnakerObjectMap, files))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }

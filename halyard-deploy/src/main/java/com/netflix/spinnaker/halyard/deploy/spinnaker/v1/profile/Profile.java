@@ -41,6 +41,7 @@ public class Profile {
   @Setter
   private String contents = "";
   private List<String> requiredFiles = new ArrayList<>();
+  private List<String> decryptedFiles = new ArrayList<>();
   private Map<String, String> env = new HashMap<>();
 
   // Name of the profile itself (not the service or artifact)
