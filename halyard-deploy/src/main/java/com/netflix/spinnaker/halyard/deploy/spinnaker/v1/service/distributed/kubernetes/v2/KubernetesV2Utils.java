@@ -304,6 +304,30 @@ public class KubernetesV2Utils {
     return name;
   }
 
+  static public String createSecretFromDecrypted(KubernetesAccount account, String namespace, String clusterName, String name, List<InMemorySecretMountPair> files) {
+    Map<String, String> contentMap = new HashMap<>();
+    for (InMemorySecretMountPair pair: files) {
+      String contents = new String(Base64.getEncoder().encode(pair.getContent().getBytes()));
+      contentMap.put(pair.getName(), contents);
+    }
+
+    name = name + "-" + Math.abs(contentMap.hashCode());
+
+    TemplatedResource secret = new JinjaJarResource("/kubernetes/manifests/secret.yml");
+    Map<String, Object> bindings = new HashMap<>();
+
+    bindings.put("files", contentMap);
+    bindings.put("name", name);
+    bindings.put("namespace", namespace);
+    bindings.put("clusterName", clusterName);
+
+    secret.extendBindings(bindings);
+
+    apply(account, secret.toString());
+
+    return name;
+  }
+
   private static List<String> kubectlPrefix(KubernetesAccount account) {
     List<String> command = new ArrayList<>();
     command.add("kubectl");
@@ -379,6 +403,17 @@ public class KubernetesV2Utils {
     public SecretMountPair(File inputFile, File outputFile) {
       this.contents = inputFile;
       this.name = outputFile.getName();
+    }
+  }
+
+  @Data
+  static public class InMemorySecretMountPair {
+    String content;
+    String name;
+
+    public InMemorySecretMountPair(String name, String content) {
+      this.name = name;
+      this.content = content;
     }
   }
 }

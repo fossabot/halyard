@@ -32,6 +32,10 @@ allprojects {
   apply plugin: 'spinnaker.base-project'
   apply plugin: 'groovy'
 
+  repositories {
+    mavenLocal()
+  }
+
   ext {
     spinnakerDependenciesVersion = '1.12.0'
     if (project.hasProperty('spinnakerDependenciesVersion')) {

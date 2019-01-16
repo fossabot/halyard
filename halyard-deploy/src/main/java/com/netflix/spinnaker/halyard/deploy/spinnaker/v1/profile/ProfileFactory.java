@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.deploy.config.v1.secrets.DecryptingObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -43,6 +44,9 @@ abstract public class ProfileFactory {
 
   @Autowired
   private ObjectMapper strictObjectMapper;
+
+  @Autowired
+  private SecretSessionManager secretSessionManager;
 
   protected boolean canDecrypt() {
     return false;
@@ -91,12 +95,12 @@ abstract public class ProfileFactory {
     return node.backupLocalFiles(halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
   }
 
-  protected String yamlToString(Object o, List<String> files) {
+  protected String yamlToString(Profile profile, Object o) {
     Map content;
     if (canDecrypt()) {
       content = strictObjectMapper.convertValue(o, Map.class);
     } else {
-      content = new DecryptingObjectMapper(files).convertValue(o, Map.class);
+      content = new DecryptingObjectMapper(secretSessionManager, profile, "/opt/spinnaker/config/secrets").convertValue(o, Map.class);
     }
     return yamlParser.dump(content);
   }

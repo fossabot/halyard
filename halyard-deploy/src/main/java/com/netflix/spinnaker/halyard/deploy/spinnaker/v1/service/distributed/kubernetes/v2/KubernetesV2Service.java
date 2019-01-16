@@ -401,6 +401,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
     Map<String, Set<Profile>> profilesByDirectory = new HashMap<>();
     List<String> requiredFiles = new ArrayList<>();
+    Map<String, String> requiredEncryptedFiles = new HashMap<>();
     List<ConfigSource> configSources = new ArrayList<>();
     String secretNamePrefix = getServiceName() + "-files";
     String namespace = getNamespace(resolvedConfiguration.getServiceSettings(getService()));
@@ -414,6 +415,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
         profiles.put(profile.getName(), profile);
         requiredFiles.addAll(profile.getRequiredFiles());
+        requiredEncryptedFiles.putAll(profile.getDecryptedFiles());
       }
     }
 
@@ -426,6 +428,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       profilesInDirectory.add(profile);
 
       requiredFiles.addAll(profile.getRequiredFiles());
+      requiredEncryptedFiles.putAll(profile.getDecryptedFiles());
       profilesByDirectory.put(mountPoint, profilesInDirectory);
     }
 
@@ -468,6 +471,18 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       configSources.add(new ConfigSource()
           .setId(name)
           .setMountPath(files.get(0).getContents().getParent())
+      );
+    }
+
+    // Mount secret files
+    if (!requiredEncryptedFiles.isEmpty()) {
+      List<KubernetesV2Utils.InMemorySecretMountPair> secrets = requiredEncryptedFiles.keySet().stream()
+              .map(k -> new KubernetesV2Utils.InMemorySecretMountPair(k, requiredEncryptedFiles.get(k)))
+              .collect(Collectors.toList());
+      String name = KubernetesV2Utils.createSecretFromDecrypted(account, namespace, getService().getCanonicalName(), secretNamePrefix, secrets);
+      configSources.add(new ConfigSource()
+              .setId(name)
+              .setMountPath("/opt/spinnaker/config/secrets")
       );
     }
 

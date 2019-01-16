@@ -71,7 +71,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
       files.addAll(backupRequiredFiles(stackdriverStore, deploymentConfiguration.getName()));
     }
 
-    profile.appendContents(yamlToString(metricStores, files));
+    profile.appendContents(yamlToString(profile, metricStores));
 
     Server server = new Server()
         .setHost(monitoringService.getHost())
@@ -80,7 +80,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
     ServerConfig serverConfig = new ServerConfig();
     serverConfig.setServer(server);
 
-    profile.appendContents(yamlToString(serverConfig, files));
+    profile.appendContents(yamlToString(profile, serverConfig));
 
     Monitor monitor = new Monitor()
         .setPeriod(metricStores.getPeriod())
@@ -89,7 +89,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
     MonitorConfig monitorConfig = new MonitorConfig();
     monitorConfig.setMonitor(monitor);
 
-    profile.appendContents(yamlToString(monitorConfig, files));
+    profile.appendContents(yamlToString(profile, monitorConfig));
     profile.appendContents(profile.getBaseContents());
     profile.setRequiredFiles(files);
   }

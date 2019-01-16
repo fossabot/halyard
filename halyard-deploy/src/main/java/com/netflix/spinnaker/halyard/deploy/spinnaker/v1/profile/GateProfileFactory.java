@@ -47,7 +47,7 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
     requiredFiles.addAll(backupRequiredFiles(security.getAuthz(), deploymentConfiguration.getName()));
     GateConfig gateConfig = getGateConfig(endpoints.getServiceSettings(Type.GATE), security);
     gateConfig.getCors().setAllowedOriginsPattern(security.getApiSecurity());
-    profile.appendContents(yamlToString(gateConfig, requiredFiles))
+    profile.appendContents(yamlToString(profile, gateConfig))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(requiredFiles);
   }

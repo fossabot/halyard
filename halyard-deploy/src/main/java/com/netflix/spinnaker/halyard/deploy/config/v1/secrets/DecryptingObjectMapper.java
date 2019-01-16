@@ -23,11 +23,16 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,16 +41,15 @@ public class DecryptingObjectMapper extends ObjectMapper {
         SECRET_FILE, SECRET, NO_SECRET
     }
 
-    private List<String> files;
+    protected Profile profile;
+    protected String decryptedOutputDirectory;
 
-//    @Autowired
-//    protected SecretSessionManager secretSessionManager;
-
-    public DecryptingObjectMapper(List<String> files) {
+    public DecryptingObjectMapper(SecretSessionManager secretSessionManager, Profile profile, String decryptedOutputDirectory) {
         super();
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        this.files = files;
+        this.profile = profile;
+        this.decryptedOutputDirectory = decryptedOutputDirectory;
 
         SimpleModule module = new SimpleModule();
         module.setSerializerModifier(new BeanSerializerModifier() {
@@ -65,11 +69,11 @@ public class DecryptingObjectMapper extends ObjectMapper {
                                 public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
                                     if (value != null) {
                                         String sValue = value.toString();
-//                                        if (!EncryptedSecret.isEncryptedSecret(sValue)) {
-//                                            gen.writeString(sValue);
-//                                        }
-                                        String decrypted = "decrypted";
-                                        gen.writeString(decrypted);
+                                        if (!EncryptedSecret.isEncryptedSecret(sValue)) {
+                                            gen.writeString(sValue);
+                                        } else {
+                                            gen.writeString(secretSessionManager.decrypt(sValue));
+                                        }
                                     }
                                 }
                             });
@@ -80,16 +84,13 @@ public class DecryptingObjectMapper extends ObjectMapper {
                                 public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
                                     if (value != null) {
                                         String sValue = value.toString();
-                                        if (sValue.startsWith("encrypted")) {
-                                            String decryptedPath = "newpath";
-                                            for (int i = 0; i < files.size(); i++) {
-                                                if (files.get(i).equals(sValue)) {
-                                                    // Replace
-                                                    files.set(i, decryptedPath);
-                                                    break;
-                                                }
-                                            }
-                                            gen.writeString(decryptedPath);
+                                        if (EncryptedSecret.isEncryptedSecret(sValue)) {
+                                            // Decrypt the content of the file and store on the profile under a random
+                                            // generated file name
+                                            String decrypted = secretSessionManager.decrypt(sValue);
+                                            String name = newRandomFilePath(bpw.getName());
+                                            profile.getDecryptedFiles().put(name, decrypted);
+                                            gen.writeString(getCompleteFilePath(name));
                                         } else {
                                             gen.writeString(sValue);
                                         }
@@ -120,5 +121,15 @@ public class DecryptingObjectMapper extends ObjectMapper {
             return getFieldSecretType(_class.getSuperclass(), fieldName);
         }
         return SecretType.NO_SECRET;
+    }
+
+
+    protected String newRandomFilePath(String fieldName) {
+        return fieldName + "-" + RandomStringUtils.randomAlphanumeric(5);
+    }
+
+    protected String getCompleteFilePath(String filename) {
+        return Paths.get(decryptedOutputDirectory, filename).toString();
+
     }
 }

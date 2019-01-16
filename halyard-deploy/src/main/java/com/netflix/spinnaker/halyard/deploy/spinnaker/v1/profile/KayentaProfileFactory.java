@@ -58,7 +58,7 @@ public class KayentaProfileFactory extends SpringProfileFactory {
     if (canary.isEnabled()) {
       List<String> files = new ArrayList<>(backupRequiredFiles(canary, deploymentConfiguration.getName()));
       KayentaConfigWrapper kayentaConfig = new KayentaConfigWrapper(endpoints.getServiceSettings(Type.KAYENTA), canary);
-      profile.appendContents(yamlToString(kayentaConfig, files)).setRequiredFiles(files);
+      profile.appendContents(yamlToString(profile, kayentaConfig)).setRequiredFiles(files);
     }
   }
 

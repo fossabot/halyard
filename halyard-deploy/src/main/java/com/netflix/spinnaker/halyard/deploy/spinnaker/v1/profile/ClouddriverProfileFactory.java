@@ -77,8 +77,8 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
       processProviders(deploymentConfiguration.getProviders());
     }
 
-    profile.appendContents(yamlToString(modifiedProviders, files))
-        .appendContents(yamlToString(new ArtifactWrapper(artifacts), files))
+    profile.appendContents(yamlToString(profile, modifiedProviders))
+        .appendContents(yamlToString(profile, new ArtifactWrapper(artifacts)))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
 

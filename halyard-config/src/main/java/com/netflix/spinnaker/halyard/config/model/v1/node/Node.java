@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -184,12 +185,12 @@ abstract public class Node implements Validatable {
     return res;
   }
 
-  protected boolean isSecretFile(Field field) {
+  public boolean isSecretFile(Field field) {
     if (field.getDeclaredAnnotation(SecretFile.class) != null) {
       try {
         field.setAccessible(true);
         String val = (String) field.get(this);
-        return val.startsWith("encrypted"); // TODO:L Call EncryptedSecret.isSecret()
+        return val != null && EncryptedSecret.isEncryptedSecret(val);
       } catch (IllegalAccessException e) {
         return false;
       }
@@ -474,6 +475,8 @@ abstract public class Node implements Validatable {
 
     return files;
   }
+
+
 
   public <T> T cloneNode(Class<T> tClass) {
     ObjectMapper mapper = new ObjectMapper();

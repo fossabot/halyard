@@ -38,7 +38,7 @@ public class FiatProfileFactory extends SpringProfileFactory {
     Authz authz = deploymentConfiguration.getSecurity().getAuthz();
     List<String> files = backupRequiredFiles(authz, deploymentConfiguration.getName());
     AuthConfig authConfig = new AuthConfig().setAuth(authz);
-    profile.appendContents(yamlToString(authConfig, files))
+    profile.appendContents(yamlToString(profile, authConfig))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }
