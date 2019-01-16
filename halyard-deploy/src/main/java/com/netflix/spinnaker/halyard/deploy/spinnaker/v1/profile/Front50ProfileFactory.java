@@ -97,13 +97,12 @@ public class Front50ProfileFactory extends SpringProfileFactory {
         .setRequiredFiles(files);
   }
 
-    protected ObjectMapper getRelaxedObjectMapper(String deploymentName, Profile profile) {
-        if (!canDecrypt()) {
-            return new DecryptingObjectMapper(secretSessionManager,
-                    profile,
-                    halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName)).relax();
-        }
-        return objectMapper;
+  protected ObjectMapper getRelaxedObjectMapper(String deploymentName, Profile profile) {
+    if (!supportsSecretDecryption(deploymentName)) {
+      return new DecryptingObjectMapper(secretSessionManager,
+                profile,
+                halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName)).relax();
     }
-
+    return objectMapper;
+  }
 }

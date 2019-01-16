@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.deploy.config.v1.secrets.DecryptingObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -48,8 +49,26 @@ abstract public class ProfileFactory {
   @Autowired
   protected SecretSessionManager secretSessionManager;
 
-  protected boolean canDecrypt() {
-    return false;
+  protected String getMinimumSecretDecryptionVersion(String deploymentName) {
+      return null;
+  }
+
+  /**
+   * @param deploymentName
+   * @return true if the target service supports decryption of secrets
+   */
+  protected boolean supportsSecretDecryption(String deploymentName) {
+      String minVersion = getMinimumSecretDecryptionVersion(deploymentName);
+      if (minVersion == null) {
+          return false;
+      }
+      String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
+      try {
+          return !Versions.lessThan(version, minVersion);
+
+      } catch (IllegalArgumentException iae) {
+          return false;
+      }
   }
 
   protected boolean showEditWarning() {
@@ -68,7 +87,6 @@ abstract public class ProfileFactory {
     if (showEditWarning()) {
       result.preppendContents(getEditWarning());
     }
-
     return result;
   }
 
@@ -97,8 +115,7 @@ abstract public class ProfileFactory {
 
   protected String yamlToString(String deploymentName, Profile profile, Object o) {
     ObjectMapper mapper;
-    Map content;
-    if (canDecrypt()) {
+    if (supportsSecretDecryption(deploymentName)) {
       mapper = strictObjectMapper;
     } else {
       mapper = new DecryptingObjectMapper(secretSessionManager,

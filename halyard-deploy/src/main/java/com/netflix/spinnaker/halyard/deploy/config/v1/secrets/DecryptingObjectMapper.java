@@ -37,6 +37,15 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * DecryptingObjectMapper serializes (part of) Halyard configurations, decrypting secrets contained in fields
+ * annotated with @Secret.
+ *
+ * It also decrypts the content of secret files, assign them a random name, and store them
+ * in {@link Profile} to be serialized later.
+ *
+ * decryptedOutputDirectory is the path to the decrypted secret files on the service's host.
+ */
 public class DecryptingObjectMapper extends ObjectMapper {
     private enum SecretType {
         SECRET_FILE, SECRET, NO_SECRET
@@ -109,7 +118,6 @@ public class DecryptingObjectMapper extends ObjectMapper {
     public DecryptingObjectMapper relax() {
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
-        this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return this;
     }
 
@@ -138,6 +146,5 @@ public class DecryptingObjectMapper extends ObjectMapper {
 
     protected String getCompleteFilePath(String filename) {
         return Paths.get(decryptedOutputDirectory.toString(), filename).toString();
-
     }
 }
