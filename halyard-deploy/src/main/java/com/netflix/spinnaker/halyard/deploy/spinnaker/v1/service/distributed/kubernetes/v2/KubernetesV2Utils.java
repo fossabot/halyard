@@ -278,36 +278,15 @@ public class KubernetesV2Utils {
     Map<String, String> contentMap = new HashMap<>();
     for (SecretMountPair pair: files) {
       String contents;
-      try {
-        contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
-      } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + pair.getContents().getAbsolutePath() + ": " + e.getMessage(), e);
+      if (pair.getContentString() != null) {
+        contents = new String(Base64.getEncoder().encode(pair.getContentString().getBytes()));
+      } else {
+        try {
+          contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
+        } catch (IOException e) {
+          throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + pair.getContents().getAbsolutePath() + ": " + e.getMessage(), e);
+        }
       }
-
-      contentMap.put(pair.getName(), contents);
-    }
-
-    name = name + "-" + Math.abs(contentMap.hashCode());
-
-    TemplatedResource secret = new JinjaJarResource("/kubernetes/manifests/secret.yml");
-    Map<String, Object> bindings = new HashMap<>();
-
-    bindings.put("files", contentMap);
-    bindings.put("name", name);
-    bindings.put("namespace", namespace);
-    bindings.put("clusterName", clusterName);
-
-    secret.extendBindings(bindings);
-
-    apply(account, secret.toString());
-
-    return name;
-  }
-
-  static public String createSecretFromDecrypted(KubernetesAccount account, String namespace, String clusterName, String name, List<InMemorySecretMountPair> files) {
-    Map<String, String> contentMap = new HashMap<>();
-    for (InMemorySecretMountPair pair: files) {
-      String contents = new String(Base64.getEncoder().encode(pair.getContent().getBytes()));
       contentMap.put(pair.getName(), contents);
     }
 
@@ -394,6 +373,7 @@ public class KubernetesV2Utils {
   @Data
   static public class SecretMountPair {
     File contents;
+    String contentString;
     String name;
 
     public SecretMountPair(File inputFile) {
@@ -404,16 +384,10 @@ public class KubernetesV2Utils {
       this.contents = inputFile;
       this.name = outputFile.getName();
     }
-  }
 
-  @Data
-  static public class InMemorySecretMountPair {
-    String content;
-    String name;
-
-    public InMemorySecretMountPair(String name, String content) {
+    public SecretMountPair(String name, String contentString) {
+      this.contentString = contentString;
       this.name = name;
-      this.content = content;
     }
   }
 }

@@ -66,6 +66,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   String getServiceName();
   String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
   String getSpinnakerStagingPath(String deploymentName);
+  String getSpinnakerStagingDependenciesPath(String deploymentName);
   ArtifactService getArtifactService();
   ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration);
   ObjectMapper getObjectMapper();
@@ -461,28 +462,21 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       );
     }
 
-    if (!requiredFiles.isEmpty()) {
+    if (!requiredFiles.isEmpty() || !requiredEncryptedFiles.isEmpty()) {
       List<SecretMountPair> files = requiredFiles.stream()
           .map(File::new)
           .map(SecretMountPair::new)
           .collect(Collectors.toList());
 
+      // Add in memory decrypted files
+      requiredEncryptedFiles.keySet().stream()
+          .map(k -> new SecretMountPair(k, requiredEncryptedFiles.get(k)))
+          .forEach(s -> files.add(s));
+
       String name = KubernetesV2Utils.createSecret(account, namespace, getService().getCanonicalName(), secretNamePrefix, files);
       configSources.add(new ConfigSource()
           .setId(name)
-          .setMountPath(files.get(0).getContents().getParent())
-      );
-    }
-
-    // Mount secret files
-    if (!requiredEncryptedFiles.isEmpty()) {
-      List<KubernetesV2Utils.InMemorySecretMountPair> secrets = requiredEncryptedFiles.keySet().stream()
-              .map(k -> new KubernetesV2Utils.InMemorySecretMountPair(k, requiredEncryptedFiles.get(k)))
-              .collect(Collectors.toList());
-      String name = KubernetesV2Utils.createSecretFromDecrypted(account, namespace, getService().getCanonicalName(), secretNamePrefix, secrets);
-      configSources.add(new ConfigSource()
-              .setId(name)
-              .setMountPath("/opt/spinnaker/config/secrets")
+          .setMountPath(getSpinnakerStagingDependenciesPath(details.getDeploymentName()))
       );
     }
 

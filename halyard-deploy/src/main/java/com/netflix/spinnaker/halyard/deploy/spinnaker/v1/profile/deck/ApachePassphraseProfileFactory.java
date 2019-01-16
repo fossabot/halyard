@@ -17,12 +17,14 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -37,6 +39,9 @@ public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory
   protected String getTemplate() {
     return PASSPHRASE_TEMPLATE;
   }
+
+  @Autowired
+  protected SecretSessionManager secretSessionManager;
 
   @Override
   protected boolean showEditWarning() {
@@ -53,7 +58,7 @@ public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory
   protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
     ApacheSsl ssl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
-    bindings.put("passphrase", ssl.getSslCertificatePassphrase());
+    bindings.put("passphrase", secretSessionManager.decrypt(ssl.getSslCertificatePassphrase()));
     return bindings;
   }
 

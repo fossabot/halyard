@@ -32,6 +32,7 @@ import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
@@ -42,9 +43,9 @@ public class DecryptingObjectMapper extends ObjectMapper {
     }
 
     protected Profile profile;
-    protected String decryptedOutputDirectory;
+    protected Path decryptedOutputDirectory;
 
-    public DecryptingObjectMapper(SecretSessionManager secretSessionManager, Profile profile, String decryptedOutputDirectory) {
+    public DecryptingObjectMapper(SecretSessionManager secretSessionManager, Profile profile, Path decryptedOutputDirectory) {
         super();
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -136,7 +137,7 @@ public class DecryptingObjectMapper extends ObjectMapper {
     }
 
     protected String getCompleteFilePath(String filename) {
-        return Paths.get(decryptedOutputDirectory, filename).toString();
+        return Paths.get(decryptedOutputDirectory.toString(), filename).toString();
 
     }
 }

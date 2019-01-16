@@ -78,7 +78,8 @@ public class Front50ProfileFactory extends SpringProfileFactory {
         persistentStore.setConnectionInfo(connectionUri);
 
         PersistentStore.PersistentStoreType persistentStoreType = persistentStore.persistentStoreType();
-        Map persistentStoreMap = getRelaxedObjectMapper(profile).convertValue(persistentStore, Map.class);
+        Map persistentStoreMap = getRelaxedObjectMapper(deploymentConfiguration.getName(), profile)
+                .convertValue(persistentStore, Map.class);
         persistentStoreMap.put("enabled", persistentStoreType.equals(persistentStorage.getPersistentStoreType()));
 
         persistentStorageMap.put(persistentStoreType.getId(), persistentStoreMap);
@@ -91,14 +92,16 @@ public class Front50ProfileFactory extends SpringProfileFactory {
     spinnakerObjectMap.put("spinnaker", persistentStorageMap);
 
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    profile.appendContents(yamlToString(profile, spinnakerObjectMap))
+    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, spinnakerObjectMap))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }
 
-    protected ObjectMapper getRelaxedObjectMapper(Profile profile) {
+    protected ObjectMapper getRelaxedObjectMapper(String deploymentName, Profile profile) {
         if (!canDecrypt()) {
-            return new DecryptingObjectMapper(secretSessionManager, profile, "/opt/spinnaker/config/secrets").relax();
+            return new DecryptingObjectMapper(secretSessionManager,
+                    profile,
+                    halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName)).relax();
         }
         return objectMapper;
     }

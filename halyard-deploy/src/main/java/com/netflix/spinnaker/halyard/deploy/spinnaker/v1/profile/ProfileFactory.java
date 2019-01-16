@@ -37,7 +37,7 @@ abstract public class ProfileFactory {
   private ArtifactService artifactService;
 
   @Autowired
-  private HalconfigDirectoryStructure halconfigDirectoryStructure;
+  protected HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   private Yaml yamlParser;
@@ -95,13 +95,16 @@ abstract public class ProfileFactory {
     return node.backupLocalFiles(halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
   }
 
-  protected String yamlToString(Profile profile, Object o) {
+  protected String yamlToString(String deploymentName, Profile profile, Object o) {
+    ObjectMapper mapper;
     Map content;
     if (canDecrypt()) {
-      content = strictObjectMapper.convertValue(o, Map.class);
+      mapper = strictObjectMapper;
     } else {
-      content = new DecryptingObjectMapper(secretSessionManager, profile, "/opt/spinnaker/config/secrets").convertValue(o, Map.class);
+      mapper = new DecryptingObjectMapper(secretSessionManager,
+              profile,
+              halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName));
     }
-    return yamlParser.dump(content);
+    return yamlParser.dump(mapper.convertValue(o, Map.class));
   }
 }
