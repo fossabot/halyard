@@ -105,6 +105,13 @@ public class DecryptingObjectMapper extends ObjectMapper {
         this.registerModule(module);
     }
 
+    public DecryptingObjectMapper relax() {
+        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
+        this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        return this;
+    }
+
     protected SecretType getFieldSecretType(Class _class, String fieldName) {
         for (Field f : _class.getDeclaredFields()) {
             if (f.getName().equals(fieldName)) {

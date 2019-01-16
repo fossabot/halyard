@@ -46,7 +46,7 @@ abstract public class ProfileFactory {
   private ObjectMapper strictObjectMapper;
 
   @Autowired
-  private SecretSessionManager secretSessionManager;
+  protected SecretSessionManager secretSessionManager;
 
   protected boolean canDecrypt() {
     return false;
