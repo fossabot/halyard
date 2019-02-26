@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.config.v1.secrets;
+package com.netflix.spinnaker.halyard.core.secrets.v1;
 
 import com.netflix.spinnaker.config.secrets.SecretManager;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *  SecretSession contains the cached decrypted secrets and secret files
  */
 class SecretSession {
 
-  @Autowired
   private SecretManager secretManager;
+
+  public SecretSession(SecretManager secretManager) {
+    this.secretManager = secretManager;
+  }
 
   private Map<String, Path> tempFiles = new HashMap<>();
 
@@ -38,11 +41,18 @@ class SecretSession {
     tempFiles.put(encrypted, decryptedFilePath);
   }
 
+  void clearCache() {
+    secretManager.clearCachedSecrets();
+  }
+
   void clearTempFiles() {
-    for (String encryptedFilePath : tempFiles.keySet()) {
-      secretManager.clearCachedFile(encryptedFilePath);
-      File f = new File(tempFiles.get(encryptedFilePath).toString());
-      f.delete();
+    Set<String> filePaths = tempFiles.keySet();
+    for (String fp : filePaths) {
+      secretManager.clearCachedFile(fp);
+      File f = new File(tempFiles.get(fp).toString());
+      if (f.delete()) {
+        tempFiles.remove(fp);
+      }
     }
   }
 }
