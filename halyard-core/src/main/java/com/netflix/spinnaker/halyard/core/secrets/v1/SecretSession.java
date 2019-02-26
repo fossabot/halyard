@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.config.v1.secrets;
+package com.netflix.spinnaker.halyard.core.secrets.v1;
 
 import com.netflix.spinnaker.config.secrets.SecretManager;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -29,8 +28,11 @@ import java.util.Map;
  */
 class SecretSession {
 
-  @Autowired
   private SecretManager secretManager;
+
+  public SecretSession(SecretManager secretManager) {
+    this.secretManager = secretManager;
+  }
 
   private Map<String, Path> tempFiles = new HashMap<>();
 
