@@ -53,7 +53,7 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
     String jsonKey = null;
     if (!StringUtils.isEmpty(getJsonPath())) {
       if (secretSessionManager != null && EncryptedSecret.isEncryptedSecret(getJsonPath())) {
-        jsonKey =  secretSessionManager.decrypt(getJsonPath());
+        jsonKey = secretSessionManager.decrypt(getJsonPath());
       } else {
         jsonKey =  ValidatingFileReader.contents(p, getJsonPath());
       }

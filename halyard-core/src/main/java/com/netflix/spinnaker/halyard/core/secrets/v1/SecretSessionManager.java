@@ -36,6 +36,7 @@ public class SecretSessionManager {
   public static void clearSession() {
     SecretSession session = secretSessions.get();
     if (session != null) {
+      session.clearCache();
       session.clearTempFiles();
       secretSessions.remove();
     }

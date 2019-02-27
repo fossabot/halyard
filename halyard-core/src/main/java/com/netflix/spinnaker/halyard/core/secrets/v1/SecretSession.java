@@ -22,6 +22,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *  SecretSession contains the cached decrypted secrets and secret files
@@ -40,11 +41,18 @@ class SecretSession {
     tempFiles.put(encrypted, decryptedFilePath);
   }
 
+  void clearCache() {
+    secretManager.clearCachedSecrets();
+  }
+
   void clearTempFiles() {
-    for (String encryptedFilePath : tempFiles.keySet()) {
-      secretManager.clearCachedFile(encryptedFilePath);
-      File f = new File(tempFiles.get(encryptedFilePath).toString());
-      f.delete();
+    Set<String> filePaths = tempFiles.keySet();
+    for (String fp : filePaths) {
+      secretManager.clearCachedFile(fp);
+      File f = new File(tempFiles.get(fp).toString());
+      if (f.delete()) {
+        tempFiles.remove(fp);
+      }
     }
   }
 }
