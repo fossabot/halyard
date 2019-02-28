@@ -32,6 +32,7 @@ public class Saml extends AuthnMethod {
   private final String nodeName = "saml";
 
   @LocalFile
+  @SecretFile
   private String metadataLocal;
   private String metadataRemote;
   private String issuerId;
