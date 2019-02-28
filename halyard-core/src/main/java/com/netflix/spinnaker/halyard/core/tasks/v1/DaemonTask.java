@@ -113,7 +113,7 @@ public class DaemonTask<C, T> {
   void cleanupResources() {
     log.info(this + " killing all jobs created by this task " + String.join(", ", runningJobs));
     DaemonTaskHandler.getJobExecutor().cancelJobs(new ArrayList<>(runningJobs));
-    SecretSessionManager.clearSession();
+      SecretSessionManager.clearSession();
     for (DaemonTask child : children) {
       if (child != null) {
         log.info(this + " interrupting child " + child);

@@ -187,6 +187,7 @@ abstract public class Node implements Validatable {
 
   public boolean isSecretFile(Field field) {
     if (field.getDeclaredAnnotation(SecretFile.class) != null) {
+//    if (field.getDeclaredAnnotation(LocalFile.class) != null) {
       try {
         field.setAccessible(true);
         String val = (String) field.get(this);

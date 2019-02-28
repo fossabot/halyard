@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.core.secrets.v1;
 
 import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.config.secrets.SecretManager;
+import com.netflix.spinnaker.config.secrets.SecretSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +37,7 @@ public class SecretSessionManager {
   public static void clearSession() {
     SecretSession session = secretSessions.get();
     if (session != null) {
-      session.clearCache();
-      session.clearTempFiles();
+      session.clearCachedSecrets();
       secretSessions.remove();
     }
   }
@@ -68,7 +68,8 @@ public class SecretSessionManager {
    * @return decrypted value of the secret field or file
    */
   public String decrypt(String filePathOrEncryptedString) {
-    return secretManager.decrypt(filePathOrEncryptedString);
+    SecretSession session = getSession();
+    return session.decrypt(filePathOrEncryptedString);
   }
 
   /**
@@ -93,11 +94,10 @@ public class SecretSessionManager {
       return filePath;
     }
 
-    Path decryptedFilePath = secretManager.decryptAsFile(filePath);
+    SecretSession session = getSession();
+    Path decryptedFilePath = session.decryptAsFile(filePath);
 
     if (decryptedFilePath != null) {
-      SecretSession session = getSession();
-      session.addFile(filePath, decryptedFilePath);
       return decryptedFilePath.toString();
     } else {
       return null;

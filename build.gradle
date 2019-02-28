@@ -43,6 +43,21 @@ allprojects {
     dependenciesVersion = spinnakerDependenciesVersion
   }
 
+  repositories {
+    mavenLocal()
+  }
+
+  configurations.all {
+    resolutionStrategy {
+      eachDependency {
+        if (it.requested.group == "com.netflix.spinnaker.kork") {
+          it.useVersion "local"
+        }
+      }
+    }
+  }
+
+  
   test {
     testLogging {
       showStandardStreams = false
