@@ -37,7 +37,7 @@ public class SamlConfig {
   String metadataUrl;
 
   @LocalFile
-  @SecretFile
+  @SecretFile(prefix="file:")
   String keyStore;
   @Secret
   String keyStorePassword;
