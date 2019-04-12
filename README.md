@@ -1,6 +1,7 @@
 # Halyard
 
 [![Build Status](https://api.travis-ci.org/spinnaker/halyard.svg?branch=master)](https://travis-ci.org/spinnaker/halyard)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Farmory-io%2Fhalyard.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Farmory-io%2Fhalyard?ref=badge_shield)
 
 A tool for configuring, installing, and updating Spinnaker.
 
@@ -57,3 +58,7 @@ halyard. To change these, check out the relevant bits in halyard-web/halyard-web
 __hal__ is a CLI for making changes to your __halconfig__ via the __daemon__.
 
 Read the command reference [here](docs/commands.md).
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Farmory-io%2Fhalyard.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Farmory-io%2Fhalyard?ref=badge_large)
